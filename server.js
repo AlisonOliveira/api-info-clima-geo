@@ -2,35 +2,54 @@ const express = require('express');
 const app = express();
 const axios = require('axios');
 
-// 1. Endpoint de Health Check
+// Endpoint de Health Check
 app.get('/api/v1/health', (req, res) => {
     res.send({ status: 'OK', message: 'API LOCAL' });
 });
 
-// 2. Rota Dinâmica de Busca de Cidades
-app.get('/api/v1/cidade/:nome/:uf', async (req, res) => {
+//  Busca de Cidades
+app.get('/api/v1/cidade/:nome', async (req, res) => {
     const cidadeDigitada = req.params.nome;
-    const estadoDigitado = req.params.uf;
-    const ufMaiuscula = estadoDigitado.toUpperCase();
+    const cdMaiuscula = cidadeDigitada.toUpperCase();
+
+      if (cidadeDigitada.length < 3) {
+        return res.status(400).json({
+            erro: true,
+            codigo: "NOME_INVALIDO",
+            mensagem: "O nome da cidade deve conter pelo menos 3 caracteres",
+            nome_informado: cidadeDigitada
+        });
+    }
 
     try {
-        // CORREÇÃO: Adicionada a barra '/' antes de ${ufMaiuscula} para a URL ficar correta
-        const response = await axios.get(`https://brasilapi.com.br/api/ibge/municipios/v1/${ufMaiuscula}`);
-
+        
+        const response = await axios.get(`https://brasilapi.com.br/api/cptec/v1/cidade/${cdMaiuscula}`);
+    
         if (Array.isArray(response.data)) {
             const cidadeEncontrada = response.data.find(
-                cidade => cidade.nome.toLowerCase() === cidadeDigitada.toLowerCase()
+                cidade => cidade.nome.toLowerCase() === cdMaiuscula.toLowerCase()
             );
 
             if (cidadeEncontrada) {
+                const id = cidadeEncontrada.id;
+
+                const response2 = await axios.get(`https://brasilapi.com.br/api/cptec/v1/clima/previsao/${id}`);
+
                 return res.json({
                     municipio: cidadeEncontrada.nome,
-                    codigo_ibge: cidadeEncontrada.codigo_ibge
+                    estado: cidadeEncontrada.estado,
+                    clima: response2.data.clima // Retornando apenas o clima do primeiro dia
+
                 });
+                
             } else {
                 return res.status(404).json({ 
-                    erro: `Cidade '${cidadeDigitada}' não encontrada no estado de ${ufMaiuscula}.` 
+                    erro: true,
+                    codigo: "CIDADE_NAO_ENCONTRADA",
+                    mensagem: "Nenhuma cidade encontrada com o nome informado",
+                    nome_informado: "CidadeInexistente"
                 });
+
             }
         } else {
             return res.status(500).json({ error: 'Resposta da API externa inválida.' });
@@ -39,13 +58,19 @@ app.get('/api/v1/cidade/:nome/:uf', async (req, res) => {
     } catch (error) {
         console.error('Error fetching external API:', error.message);
         if (error.response && error.response.status === 404) {
-            return res.status(404).json({ error: `Estado/UF '${ufMaiuscula}' inválido ou não encontrado.` });
+            return res.status(404).json({
+                erro: true,
+                codigo: "CIDADE_NAO_ENCONTRADA",
+                mensagem: "Nenhuma cidade encontrada com o nome informado",
+                nome_informado: cidadeDigitada
+            });
         }
+
         res.status(500).send({ error: 'Failed to fetch external API' });
     }
 });
 
-// CORREÇÃO: Adicionada a inicialização do servidor que estava faltando no final
+//Inicialização do servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

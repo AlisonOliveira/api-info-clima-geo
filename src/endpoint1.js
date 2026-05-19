@@ -3,14 +3,33 @@ const app = express();
 const axios = require('axios');
 
 // Endpoint de Health Check
-app.get('/api/v1/health', (req, res) => {
-    res.send({ status: 'OK', message: 'API LOCAL' });
+app.get('/api/v1/health', async (req, res) => {
+    const versao = "1.0.0";
+    const timestamp = new Date().toISOString();
+
+    try {
+        // Sucesso 
+        return res.status(200).json({
+            status: "healthy",
+            versao: versao,
+            timestamp: timestamp
+        });
+
+    } catch (error) {
+        // Falha na API externa
+        return res.status(200).json({
+            status: "degraded",
+            versao: versao,
+            timestamp: timestamp,
+            motivo: "Serviço externo indisponível"
+        });
+    }
 });
 
 //  Busca de Cidades
-app.get('/api/v1/cidade/:nome', async (req, res) => {
+app.get('/api/v1/clima/:nome', async (req, res) => {
     const cidadeDigitada = req.params.nome;
-    const cdMaiuscula = cidadeDigitada.toUpperCase();
+    
 
       if (cidadeDigitada.length < 3) {
         return res.status(400).json({
@@ -23,11 +42,11 @@ app.get('/api/v1/cidade/:nome', async (req, res) => {
 
     try {
         
-        const response = await axios.get(`https://brasilapi.com.br/api/cptec/v1/cidade/${cdMaiuscula}`);
+        const response = await axios.get(`https://brasilapi.com.br/api/cptec/v1/cidade/${cidadeDigitada}`);
     
         if (Array.isArray(response.data)) {
             const cidadeEncontrada = response.data.find(
-                cidade => cidade.nome.toLowerCase() === cdMaiuscula.toLowerCase()
+                cidade => cidade.nome.toLowerCase() === cidadeDigitada.toLowerCase()
             );
 
             if (cidadeEncontrada) {
@@ -46,7 +65,7 @@ app.get('/api/v1/cidade/:nome', async (req, res) => {
                 return res.json({
                     municipio: cidadeEncontrada.nome,
                     estado: cidadeEncontrada.estado,
-                    clima: climaFiltrado // Retornando apenas o clima do primeiro dia
+                    clima: climaFiltrado 
 
                 });
                 

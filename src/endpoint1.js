@@ -1,22 +1,18 @@
 const express = require('express');
-const app = express();
+const router = express.Router();
 const axios = require('axios');
 
-// Endpoint de Health Check
-app.get('/api/v1/health', async (req, res) => {
+router.get('/health', async (req, res) => {
     const versao = "1.0.0";
     const timestamp = new Date().toISOString();
 
     try {
-        // Sucesso 
         return res.status(200).json({
             status: "healthy",
             versao: versao,
             timestamp: timestamp
         });
-
     } catch (error) {
-        // Falha na API externa
         return res.status(200).json({
             status: "degraded",
             versao: versao,
@@ -26,12 +22,10 @@ app.get('/api/v1/health', async (req, res) => {
     }
 });
 
-//  Busca de Cidades
-app.get('/api/v1/clima/:nome', async (req, res) => {
+router.get('/clima/:nome', async (req, res) => {
     const cidadeDigitada = req.params.nome;
-    
 
-      if (cidadeDigitada.length < 3) {
+    if (cidadeDigitada.length < 3) {
         return res.status(400).json({
             erro: true,
             codigo: "NOME_INVALIDO",
@@ -41,9 +35,8 @@ app.get('/api/v1/clima/:nome', async (req, res) => {
     }
 
     try {
-        
         const response = await axios.get(`https://brasilapi.com.br/api/cptec/v1/cidade/${cidadeDigitada}`);
-    
+
         if (Array.isArray(response.data)) {
             const cidadeEncontrada = response.data.find(
                 cidade => cidade.nome.toLowerCase() === cidadeDigitada.toLowerCase()
@@ -65,18 +58,15 @@ app.get('/api/v1/clima/:nome', async (req, res) => {
                 return res.json({
                     municipio: cidadeEncontrada.nome,
                     estado: cidadeEncontrada.estado,
-                    clima: climaFiltrado 
-
+                    clima: climaFiltrado
                 });
-                
             } else {
-                return res.status(404).json({ 
+                return res.status(404).json({
                     erro: true,
                     codigo: "CIDADE_NAO_ENCONTRADA",
                     mensagem: "Nenhuma cidade encontrada com o nome informado",
                     nome_informado: "CidadeInexistente"
                 });
-
             }
         } else {
             return res.status(500).json({ error: 'Resposta da API externa inválida.' });
@@ -97,8 +87,11 @@ app.get('/api/v1/clima/:nome', async (req, res) => {
     }
 });
 
-//Inicialização do servidor
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+module.exports = router;
+
+if (require.main === module) {
+    const app = express();
+    app.use('/api/v1', router);
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+}

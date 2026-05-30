@@ -1,0 +1,203 @@
+{
+	"info": {
+		"name": "API Info Clima Geo",
+		"description": "Coleção Postman para a API de Informações de Clima e Cidades. Consulta previsão do tempo e lista municípios por estado usando a BrasilAPI.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Health Check",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/health",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "health"]
+						},
+						"description": "Verifica se a API está funcionando corretamente."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Clima",
+			"item": [
+				{
+					"name": "Clima - Sucesso (Fortaleza)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/clima/Fortaleza",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "clima", "Fortaleza"]
+						},
+						"description": "Busca a previsão do tempo para Fortaleza."
+					},
+					"response": []
+				},
+				{
+					"name": "Clima - Sucesso (São Paulo)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/clima/São Paulo",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "clima", "São Paulo"]
+						},
+						"description": "Busca a previsão do tempo para São Paulo."
+					},
+					"response": []
+				},
+				{
+					"name": "Clima - Erro 400 (nome curto)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/clima/SP",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "clima", "SP"]
+						},
+						"description": "Testa erro 400 - nome da cidade com menos de 3 caracteres."
+					},
+					"response": []
+				},
+				{
+					"name": "Clima - Erro 404 (cidade inexistente)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/clima/CidadeInexistente",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "clima", "CidadeInexistente"]
+						},
+						"description": "Testa erro 404 - cidade não encontrada na API externa."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Cidades",
+			"item": [
+				{
+					"name": "Cidades - Sucesso (CE, padrão)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/cidades/CE",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "cidades", "CE"]
+						},
+						"description": "Lista municípios do Ceará com limite padrão (10)."
+					},
+					"response": []
+				},
+				{
+					"name": "Cidades - Com limite (CE, 5)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/cidades/CE?limite=5",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "cidades", "CE"],
+							"query": [
+								{
+									"key": "limite",
+									"value": "5"
+								}
+							]
+						},
+						"description": "Lista 5 municípios do Ceará."
+					},
+					"response": []
+				},
+				{
+					"name": "Cidades - Sucesso (SP, 20)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/cidades/SP?limite=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "cidades", "SP"],
+							"query": [
+								{
+									"key": "limite",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Lista 20 municípios de São Paulo."
+					},
+					"response": []
+				},
+				{
+					"name": "Cidades - Erro 400 (sigla inválida)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/cidades/ABC",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "cidades", "ABC"]
+						},
+						"description": "Testa erro 400 - sigla com mais de 2 caracteres."
+					},
+					"response": []
+				},
+				{
+					"name": "Cidades - Erro 400 (limite inválido)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/cidades/CE?limite=200",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "cidades", "CE"],
+							"query": [
+								{
+									"key": "limite",
+									"value": "200"
+								}
+							]
+						},
+						"description": "Testa erro 400 - limite fora do intervalo (1-100)."
+					},
+					"response": []
+				},
+				{
+					"name": "Cidades - Erro 404 (estado inexistente)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/cidades/XX",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "cidades", "XX"]
+						},
+						"description": "Testa erro 404 - estado não encontrado."
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
